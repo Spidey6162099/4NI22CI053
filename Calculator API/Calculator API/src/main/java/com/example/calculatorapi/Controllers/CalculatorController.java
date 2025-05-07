@@ -1,6 +1,7 @@
 package com.example.calculatorapi.Controllers;
 
 import com.example.calculatorapi.DTOs.WindowDTO;
+import com.example.calculatorapi.Exceptions.TestServiceFailedException;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -63,11 +64,12 @@ public class CalculatorController {
     }
 
     private String fetchAuthToken() {
-        // Return cached token if still valid
+        // checking if valid still or not
         if (cachedToken != null && System.currentTimeMillis() < tokenExpiry) {
             return cachedToken;
         }
 
+        //setting up credentials , in production move to environment
         Map<String, String> body = Map.of(
                 "email", "shaunakbanerjee5@gmail.com",
                 "name", "shaunak banerjee",
@@ -113,6 +115,7 @@ public class CalculatorController {
                 }
             } catch (Exception e) {
                 System.out.println("Fetch failed: " + e.getMessage());
+
             }
             return Collections.emptyList();
         });
@@ -121,7 +124,7 @@ public class CalculatorController {
             return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             future.cancel(true);
-            return Collections.emptyList();
+            throw new TestServiceFailedException("took more than 500ms");
         } finally
 {
         executor.shutdownNow();
